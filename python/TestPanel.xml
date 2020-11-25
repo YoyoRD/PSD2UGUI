@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PSDUI>
+	<psdSize>
+		<width>1100</width>
+		<height>682</height>
+	</psdSize>
+	<children>
+		<Layer>
+			<type>slider</type>
+			<name>sliderA</name>
+		</Layer>
+		<Layer>
+			<type>btn</type>
+			<name>btnA</name>
+		</Layer>
+	</children>
+</PSDUI>
