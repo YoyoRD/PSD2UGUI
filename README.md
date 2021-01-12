@@ -39,9 +39,7 @@
 - 打开一个psd文件，在cs6中选择“文件->脚本->Export PSDUI”，会弹框选择一个目录，存放脚本运行时的切图和配置文件(xml)。
 - 将上一步生成的切图和配置拷贝到unity中，在菜单栏选择quicktool/psdimport执行，弹框选择上一步导出的xml文件，将在hierarchy中生成ugui面板
 
----
-
-## 提示
+### 提示
 
 - 使用编辑器修改或调试ps脚本：找到或下载编辑器adobe extendscript toolkit，一般都在C盘，如C:\Program Files (x86)\Adobe\Adobe Utilities - CS6\ExtendScript Toolkit CS6， file/open打开文件“ps安装目录\Presets\Scripts\Export PSDUI.jsx”，目标应用选择“Adobe Photoshop CS6”，就可以断点调试运行了
 - 如果运行ps脚本时出现错误“合并可见图层当前不可用”，可以检查是否有单个图片(比如背景图)位于根节点的最后，并将其移到某个图层组下面，具体见文档
@@ -49,23 +47,72 @@
 - 有问题或者建议、想法可以加QQ群654564220讨论
 - 以上内容我就不改了，尊重原作者。
 
+### 注意事项
+
+- 在PSD文件内，最外层添加一个组，组名为 PSD文件名 + @ 模块名 。如下图：
+- ![image-20210112150032947](https://gitee.com/Yoyo21/image-hosting/raw/master/img/image-20210112150032947.png)
+- 两种情况下会分开 几个PSD文件
+  - 1.存在列表(List)的时候，列表内的项 需要新建一个新的PSD文件
+  - 2.存在切换页面，被切换的页面需要 新建一个PSD文件 
+- 需要显示 但不需要导出的内容 则可以加入 @null
+  - ![image-20210112150613236](https://gitee.com/Yoyo21/image-hosting/raw/master/img/image-20210112150613236.png)
+
 ---
 
 ## 命名规则
 
 ### 文本
 
-- 可单独作为一个图层 通常美术字体和项目字体一致
+- 不需要任何图层管理，直接放即可。
+  - ![image-20210112150845517](https://gitee.com/Yoyo21/image-hosting/raw/master/img/image-20210112150845517.png)
+- 如果文字是需要导出图片，则在后面加入_wztp （文字图片的拼音）
+  - ![image-20210112151046946](https://gitee.com/Yoyo21/image-hosting/raw/master/img/image-20210112151046946.png)
 
-### 精灵
+### 按钮
 
-- 图集里面的小图片，都需要加入后缀 @图集名
-  - 如：imgBtn2_Normal@PSDTestAtlas
-  - 精灵基本上都是放到某个组下
-  - 公共图集则加上@Global
-  - 资源生成如果是美术想自动生成则规则还需要更改
+- 按钮的内容 需要加入一个组， 组的名字为 btnA@an 
+  - btnA 保证一个psd文件内不重复
+  - @an(按钮的拼音) 代表是按钮
+  - ![image-20210112151228639](https://gitee.com/Yoyo21/image-hosting/raw/master/img/image-20210112151228639.png)
+  - imgBtn1可以随便命名
+  - 如果是图片自带文字 ,Title 都可以不用有
+  - 如果是2张图片 则建议合并图层
+    - 如果不合 就在下面加一个图层即可
 
+### 选中框
 
+- 选中框的内容 需要加入一个组 ，组的名称为 xxxx@xzk
+  - xxxx 保证一个psd文件内不重复
+  - @xzk(选中框的拼音) 代表的是选中框
+  - ![image-20210112152044302](https://gitee.com/Yoyo21/image-hosting/raw/master/img/image-20210112152044302.png)
+  - 内部有一个xz 的组 ，这里面存选中状态的图片
+  - 默认状态就放在bxz下
+
+### 列表
+
+- 列表的内容 需要加入一个组 。 组的名称为 xxxx@lb:H:1
+
+  - xxxx 保证一个psd文件内不重复
+
+  - @lb(列表的拼音) 代表的是一个列表
+
+  - :H 与 :V  H 代表横着滑动 V 代表竖着滑动
+
+  - 1 代表一行 或者 一列放几个
+
+    ![image-20210112152335532](https://gitee.com/Yoyo21/image-hosting/raw/master/img/image-20210112152335532.png)
+
+  - 如上图 1 代表 一列放1个 一行放几个 无所谓 因为可以滑动
+
+- ![image-20210112152440954](https://gitee.com/Yoyo21/image-hosting/raw/master/img/image-20210112152440954.png)
+
+  - @Size 就是这个列表的大小，一般给透明度 为1(不影响PSD内部的显示 透明不透明都行 但是不能为0)
+
+- 如果是单行 或者 单列 需要放两个Item 来确定他们之间的间隔
+
+- 如果是多行多列的列表 则 起码放 三个， 左上 右边 下面 来确定 列表项的 间隔
+
+- **列表下的子项 名称为另外PSD的名称 ，图中的内容有错**
 
 
 

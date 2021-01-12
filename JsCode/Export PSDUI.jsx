@@ -22,16 +22,24 @@ var sourcePsdName;
 var slicePaddingArr = new Array(0,0,0,0)
 var sliceOriArr = new Array(0,0,0,0)
 
+
+var buttonKey = "@an";
+var toggleKey = "@xz";
+var listKey = "@lb";
+var prefabKey = "@ys";
+var nullKey = "@null";
+var notKey = "@not";
+var itemKey = "@item";
+var inputKey = "@srk";
+var artStaticKey = "_wztp";
+// var textureKey = "@tt";  //直接判断 256 * 256 大于则导出
+var commonAtlas = "ty_"; //通用图集的名称
+
+var moduleName;
+
 main();
 
-function test(a,b)
-{
-    return a+b;
-}
-
 function main(){
-    
-    alert("被执行")
     // got a valid document?
     if (app.documents.length <= 0)
     {
@@ -82,7 +90,7 @@ function main(){
     sceneData = "<?xml version=\"1.0\" encoding=\"utf-8\"?>";
     sceneData += "<PSDUI>";
     
-    var moduleName = getModuleName(duppedPsd);
+    moduleName = getModuleName(duppedPsd);
     sceneData += "\n<psdSize>";
     sceneData += "<width>" + duppedPsd.width.value + "</width>";
     sceneData += "<height>" + duppedPsd.height.value+ "</height>";
@@ -187,16 +195,16 @@ function exportLayerSet(_layer)
         return
     }
 
-    if (_layer.name.search("@Null") >= 0)
+    if (_layer.name.search(nullKey) >= 0)
     {
         return
     }
 
-    if (_layer.name.search("@Not") >= 0)
+    if (_layer.name.search(notKey) >= 0)
     {
         exportAllLayers(_layer);
     }
-    else if (_layer.name.search("@Prefab") >= 0)
+    else if (_layer.name.search(prefabKey) >= 0)
     {
         exportPrefab(_layer);
     }
@@ -208,11 +216,11 @@ function exportLayerSet(_layer)
     {
         exportGrid(_layer);
     }
-    else if (_layer.name.search("@Button") >= 0)
+    else if (_layer.name.search(buttonKey) >= 0)
     {
         exportButton(_layer);
     }
-    else if (_layer.name.search("@Toggle") >= 0)
+    else if (_layer.name.search(toggleKey) >= 0)
     {
         exportToggle(_layer);
     }
@@ -228,7 +236,7 @@ function exportLayerSet(_layer)
     {
         exportGroup(_layer);
     }
-    else if (_layer.name.search("@InputField") >=0) 
+    else if (_layer.name.search(inputKey) >=0) 
     {
         exportInputField(_layer);
     }
@@ -244,11 +252,11 @@ function exportLayerSet(_layer)
     {       
         exportTabGroup(_layer)
     }
-    else if(_layer.name.search("@List") >= 0)
+    else if(_layer.name.search(listKey) >= 0)
     {
         exportList(_layer);
     }
-    else if(_layer.name.search("@Item") >= 0)
+    else if(_layer.name.search(itemKey) >= 0)
     {
         exportItem(_layer);
     }
@@ -764,14 +772,14 @@ function exportArtLayer(obj)
     if (typeof(obj) == "undefined") {return};
     if (obj.name.search("@Size") >= 0) {return};
 
-    if (obj.name.search("@Null") >=0) {return};
+    if (obj.name.search(nullKey) >=0) {return};
 
-    if (obj.name.search("@Not") >= 0)
+    if (obj.name.search(notKey) >= 0)
     {
         var validFileName = makeValidFileName(obj.name);
         if (LayerKind.TEXT == obj.kind)
         {
-            if(obj.name.search("_ArtStatic") >= 0)
+            if(obj.name.search(artStaticKey) >= 0)
             {
                 obj.visible = true;
                 saveScenePng(duppedPsd.duplicate() , validFileName ,true);
@@ -796,13 +804,20 @@ function exportArtLayer(obj)
         {
             exportLabel(obj,validFileName);
         }
-        else if (obj.name.search("Texture") >= 0)
-        {
-            exportTexture(obj,validFileName);
-        }
+        // else if (obj.name.search(textureKey) >= 0)
+        // {
+        // }
         else
         {
-            exportImage(obj,validFileName);
+            var recSize = getLayerRec(duppedPsd.duplicate());
+            if (recSize.width >= 256 || recSize.height >= 256)
+            {
+                exportTexture(obj,validFileName);
+            }
+            else
+            {
+                exportImage(obj,validFileName);
+            }
         }
         sceneData += "</image>";
         // sceneData += "</PSImage>";
@@ -813,7 +828,7 @@ function exportArtLayer(obj)
 function exportLabel(obj,validFileName)
 {
     //有些文本如标题，按钮，美术用的是其他字体，可能还加了各种样式，需要当做图片切出来使用
-    if(obj.name.search("_ArtStatic") >= 0)
+    if(obj.name.search(artStaticKey) >= 0)
     {
         exportImage(obj,validFileName);   
         return;
@@ -940,31 +955,42 @@ function exportImage(obj,validFileName)
     //var validFileName = makeValidFileName(obj.name);
     var oriName = obj.name
     sceneData += "<name>" + validFileName + "</name>\n";
-
-    if (obj.name.search("Common") >= 0)
+    
+    // 处理通用图集
+    if (obj.name.search("ty_") >= 0)
     {
         sceneData += "<imageSource>" + "Common" + "</imageSource>\n";
     }
-    else if(obj.name.search("Global") >= 0)
-    {
-        sceneData += "<imageSource>" + "Global" + "</imageSource>\n";
-    }
-	else if(obj.name.search("Atlas") >= 0)
-	{
-		sceneData += "<imageSource>" + "CustomAtlas" + "</imageSource>\n";
-		
-        var atlasName = obj.name.split("@")[1];
-        //substring (obj.name.lastIndexOf("@CustomAtlas"), obj.name.length);
-		// 拆分出图集名
-		
-		
-		// 添加图集名
-		sceneData += "<AtlasName>" + atlasName + "</AtlasName>";
-	}
     else
     {
-        sceneData += "<imageSource>" + "Custom" + "</imageSource>\n";      
+        // 否则就是自己模块的图集
+        sceneData += "<imageSource>" + "CustomAtlas" + "</imageSource>\n";
+        var atlasName = obj.name.split("@")[1];
+		sceneData += "<AtlasName>" + moduleName + "Atlas" + "</AtlasName>";
     }
+
+    // if (obj.name.search("Common") >= 0)
+    // {
+    //     sceneData += "<imageSource>" + "Common" + "</imageSource>\n";
+    // }
+    // else if(obj.name.search("Global") >= 0)
+    // {
+    //     sceneData += "<imageSource>" + "Global" + "</imageSource>\n";
+    // }
+	// else if(obj.name.search("Atlas") >= 0)
+	// {
+	// 	sceneData += "<imageSource>" + "CustomAtlas" + "</imageSource>\n";
+		
+    //     var atlasName = obj.name.split("@")[1];
+    //     //substring (obj.name.lastIndexOf("@CustomAtlas"), obj.name.length);
+	// 	// 拆分出图集名
+	// 	// 添加图集名
+	// 	sceneData += "<AtlasName>" + atlasName + "</AtlasName>";
+	// }
+    // else
+    // {
+    //     sceneData += "<imageSource>" + "Custom" + "</imageSource>\n";      
+    // }
 
 	if (oriName.search("_9S") >= 0)
 	{
